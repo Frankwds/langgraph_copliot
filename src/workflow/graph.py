@@ -32,4 +32,10 @@ def create_due_diligence_graph() -> StateGraph:
     workflow.add_node("synthesis", synthesis_node)
     workflow.add_node("output", output_node)
 
+    # Set the entry point of the workflow
+    workflow.set_entry_point("init")
+    
+    # Define edges between nodes to establish workflow order
+    
+
     return workflow
