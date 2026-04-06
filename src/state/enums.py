@@ -1,5 +1,9 @@
 """
 Enums for type-safe field access and workflow stage tracking.
+
+Why (str, Enum)? Raw strings like state["research_complete"] are error-prone —
+typos silently fail at runtime. Inheriting from both str and Enum lets values
+work as plain strings while giving IDE autocomplete and typo detection.
 """
 
 from enum import Enum

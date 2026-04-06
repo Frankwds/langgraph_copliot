@@ -18,6 +18,9 @@ class DueDiligenceState(TypedDict):
     funding_stage: Optional[str]
 
     # RESEARCH
+    # Why Annotated[..., add]? When agents run in parallel and both write to this
+    # list, the default "last write wins" would drop results. The add reducer
+    # merges lists instead: add([1,2], [3,4]) = [1,2,3,4].
     research_outputs: Annotated[List[dict], add]
 
     # ANALYSIS
@@ -29,10 +32,13 @@ class DueDiligenceState(TypedDict):
 
     # METADATA
     current_stage: str
-    errors: Annotated[List[str], add]
+    errors: Annotated[List[str], add]  # also parallel-safe, same reason as above
     retry_count: int
 
 
+# Why create_initial_state? Every workflow run needs proper defaults — empty
+# lists, zero counters, None for optional outputs. Centralizing this prevents
+# callers from forgetting a field or setting a wrong default.
 def create_initial_state(
     startup_name: str,
     startup_description: str,
