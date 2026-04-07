@@ -18,3 +18,8 @@ deactivate
 
 To run langgraph:
 langgraph dev --allow-blocking
+
+
+
+# 1. forbiddenfruit must be pre-installed without cache (Store Python bug)
+.venv\Scripts\pip install --no-cache-dir forbiddenfruit

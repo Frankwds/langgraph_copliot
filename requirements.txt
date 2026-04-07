@@ -1,2 +1,3 @@
 langgraph
+langgraph-cli[inmem]
 github-copilot-sdk  # requires Python 3.11+
