@@ -1,5 +1,7 @@
 import asyncio
 import time
+from datetime import datetime
+from pathlib import Path
 from typing import Dict, Any, List
 
 from ..state.schema import DueDiligenceState
@@ -21,6 +23,31 @@ from ..agents.analysis.legal_reviewer import run_legal_reviewer
 from ..agents.synthesis.report_generator import run_report_generator
 from ..agents.synthesis.decision_agent import run_decision_agent
 
+
+# ---------------------------------------------------------------------------
+# Artifact helpers
+# ---------------------------------------------------------------------------
+
+_artifact_dir: Path | None = None
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]  # Copliot version/
+
+
+def _get_artifact_dir() -> Path:
+    """Return (and create on first call) the artifacts/run_<timestamp> folder."""
+    global _artifact_dir
+    if _artifact_dir is None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        _artifact_dir = _PROJECT_ROOT / "artifacts" / f"run_{ts}"
+        _artifact_dir.mkdir(parents=True, exist_ok=True)
+    return _artifact_dir
+
+
+def _write_artifact(step: str, agent_name: str, content: str) -> None:
+    """Write raw agent output to artifacts/run_<ts>/<step>_<agent>.md."""
+    if not content:
+        return
+    path = _get_artifact_dir() / f"{step}_{agent_name}.md"
+    path.write_text(content, encoding="utf-8")
 
 
 async def init_node(state: DueDiligenceState) -> Dict[str, Any]:
@@ -104,6 +131,7 @@ async def research_node(state: DueDiligenceState) -> Dict[str, Any]:
                 "success": True,
                 "execution_time_ms": result.execution_time_ms
             })
+            _write_artifact("research", agent_name, result.raw_output or "")
             print(f"  DONE: {agent_name} ({result.execution_time_ms/1000:.1f}s)")
 
     elapsed = time.time() - start_time
@@ -230,6 +258,7 @@ async def analysis_node(state: DueDiligenceState) -> Dict[str, Any]:
                 "success": True,
                 "execution_time_ms": result.execution_time_ms
             })
+            _write_artifact("analysis", agent_name, result.raw_output or "")
             print(f"  DONE: {agent_name} ({result.execution_time_ms/1000:.1f}s)")
 
     # Now run risk assessor with ALL outputs
@@ -256,6 +285,7 @@ async def analysis_node(state: DueDiligenceState) -> Dict[str, Any]:
             "success": True,
             "execution_time_ms": risk_result.execution_time_ms
         })
+        _write_artifact("analysis", "risk_assessor", risk_result.raw_output or "")
         print(f"  DONE: risk_assessor ({risk_result.execution_time_ms/1000:.1f}s)")
 
     elapsed = time.time() - start_time
@@ -311,6 +341,7 @@ async def synthesis_node(state: DueDiligenceState) -> Dict[str, Any]:
         print(f"  FAILED: report_generator")
     else:
         full_report = report_result.output or report_result.raw_output
+        _write_artifact("synthesis", "report_generator", report_result.raw_output or "")
         print(f"  DONE: report_generator ({report_result.execution_time_ms/1000:.1f}s)")
 
     # Run decision agent with the report
@@ -332,6 +363,7 @@ async def synthesis_node(state: DueDiligenceState) -> Dict[str, Any]:
         print(f"  FAILED: decision_agent")
     else:
         investment_decision = decision_result.output
+        _write_artifact("synthesis", "decision_agent", decision_result.raw_output or "")
         print(f"  DONE: decision_agent ({decision_result.execution_time_ms/1000:.1f}s)")
 
     elapsed = time.time() - start_time
