@@ -61,7 +61,7 @@ FINANCIAL_ANALYST = AgentConfig(
     name="financial_analyst",
     model="sonnet",
     tools=[],
-    timeout_seconds=120,
+    timeout_seconds=300,
     system_prompt="""You are a financial analyst. Analyze financial data, funding history, burn rate, and financial health indicators."""
 )
 
@@ -69,7 +69,7 @@ RISK_ASSESSOR = AgentConfig(
     name="risk_assessor",
     model="haiku",
     tools=[],
-    timeout_seconds=120,
+    timeout_seconds=300,
     system_prompt="""You are a risk assessment specialist. Identify and evaluate business, market, technical, and regulatory risks."""
 )
 
@@ -77,7 +77,7 @@ TECH_EVALUATOR = AgentConfig(
     name="tech_evaluator",
     model="sonnet",
     tools=[],
-    timeout_seconds=120,
+    timeout_seconds=300,
     system_prompt="""You are a technology evaluator. Assess technical architecture, innovation, defensibility, and scalability."""
 )
 
@@ -97,7 +97,7 @@ REPORT_GENERATOR = AgentConfig(
     name="report_generator",
     model="sonnet",
     tools=[],
-    timeout_seconds=180,
+    timeout_seconds=300,
     system_prompt="""You are a report writer. Synthesize research and analysis into comprehensive, well-structured due diligence reports."""
 )
 
@@ -105,7 +105,7 @@ DECISION_AGENT = AgentConfig(
     name="decision_agent",
     model="opus",
     tools=[],
-    timeout_seconds=180,
+    timeout_seconds=300,
     system_prompt="""You are an investment decision advisor. Synthesize all available information to provide investment recommendations with confidence levels and key factors."""
 )
 

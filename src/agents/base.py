@@ -62,8 +62,24 @@ async def run_agent(
                 if system_prompt:
                     session_kwargs["system_message"] = {"content": system_prompt}
                 async with await client.create_session(**session_kwargs) as session:
-                    reply = await session.send_and_wait(prompt)
-                    output_text = reply.data.content or ""
+                    # Use event-based API so our asyncio.wait_for controls the
+                    # timeout, not send_and_wait()'s internal limit.
+                    idle = asyncio.Event()
+
+                    def on_event(event):
+                        kind = event.type.value
+                        if kind == "assistant.message":
+                            output_text = event.data.content or ""
+                            # store via closure — reassign the outer variable
+                            execute.captured = output_text
+                        elif kind == "session.idle":
+                            idle.set()
+
+                    execute.captured = ""
+                    session.on(on_event)
+                    await session.send(prompt)
+                    await idle.wait()
+                    output_text = execute.captured
 
         await asyncio.wait_for(execute(), timeout=timeout_seconds)
 
