@@ -15,3 +15,6 @@ Install your deps:
 pip install -r requirements.txt
 Deactivate later:
 deactivate
+
+To run langgraph:
+langgraph dev --allow-blocking

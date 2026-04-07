@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "due_diligence": "src.workflow.graph:get_compiled_graph"
+  },
+  "env": ".env"
+}
