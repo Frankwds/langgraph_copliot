@@ -8,7 +8,9 @@ and ensures consistent output format.
 import asyncio
 import time
 import json
+import tempfile
 from typing import List, Optional, Any
+from pathlib import Path
 from pydantic import BaseModel
 
 from ..config.settings import get_model_id
@@ -41,11 +43,14 @@ async def run_agent(
             ResultMessage, TextBlock,
         )
 
+        # Use a cross-platform temp directory
+        temp_dir = tempfile.gettempdir()
+
         options = ClaudeAgentOptions(
             model=model_id,
             allowed_tools=tools if tools else [],
             permission_mode="bypassPermissions",
-            cwd="/tmp"
+            cwd=temp_dir
         )
 
         output_text = ""
