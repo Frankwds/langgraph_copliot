@@ -9,6 +9,7 @@ from .nodes import (
     synthesis_node,
     output_node,
 )
+from .routing import check_init_success, check_research_completeness
 
 
 # Why StateGraph with TypedDict? The StateGraph constructor takes our state type
@@ -36,7 +37,20 @@ def create_due_diligence_graph() -> StateGraph:
     workflow.set_entry_point("init")
     
     # Define edges between nodes to establish workflow order
-    
+    workflow.add_conditional_edges(
+        "init",
+        check_init_success,
+        {"success": "research", "failed": END},
+    )
+    workflow.add_conditional_edges(
+        "research",
+        check_research_completeness,
+        {"complete": "validate_research", "incomplete": "research", "failed": END},
+    )
+    workflow.add_edge("validate_research", "analysis")
+    workflow.add_edge("analysis", "synthesis")
+    workflow.add_edge("synthesis", "output")
+    workflow.add_edge("output", END)
 
     return workflow
 
