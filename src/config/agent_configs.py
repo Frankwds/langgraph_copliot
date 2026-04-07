@@ -17,7 +17,7 @@ COMPANY_PROFILER = AgentConfig(
     name="company_profiler",
     model="haiku",
     tools=[],
-    timeout_seconds=90,
+    timeout_seconds=300,
     system_prompt="""You are a company research specialist. Research companies thoroughly and return structured data about their business, founding, and operations. Use the shell tool to run curl commands to search the web and fetch relevant pages."""
 )
 
@@ -25,7 +25,7 @@ MARKET_RESEARCHER = AgentConfig(
     name="market_researcher",
     model="haiku",
     tools=[],
-    timeout_seconds=90,
+    timeout_seconds=300,
     system_prompt="""You are a market research analyst. Analyze market opportunities, TAM/SAM/SOM, trends, and competitive landscape. Use the shell tool to run curl commands to search the web and fetch relevant pages."""
 )
 
@@ -33,7 +33,7 @@ COMPETITOR_SCOUT = AgentConfig(
     name="competitor_scout",
     model="haiku",
     tools=[],
-    timeout_seconds=90,
+    timeout_seconds=300,
     system_prompt="""You are a competitive intelligence specialist. Identify and analyze competitors, their strengths, weaknesses, and market positioning. Use the shell tool to run curl commands to search the web and fetch relevant pages."""
 )
 
@@ -41,7 +41,7 @@ TEAM_INVESTIGATOR = AgentConfig(
     name="team_investigator",
     model="haiku",
     tools=[],
-    timeout_seconds=90,
+    timeout_seconds=300,
     system_prompt="""You are a team research specialist. Research founders and key team members, their backgrounds, experience, and track records. Use the shell tool to run curl commands to search the web and fetch relevant pages."""
 )
 
@@ -49,7 +49,7 @@ NEWS_MONITOR = AgentConfig(
     name="news_monitor",
     model="haiku",
     tools=[],
-    timeout_seconds=90,
+    timeout_seconds=300,
     system_prompt="""You are a news analyst. Find recent news, press releases, and media coverage about companies. Use the shell tool to run curl commands to search the web and fetch relevant pages."""
 )
 
@@ -85,7 +85,7 @@ LEGAL_REVIEWER = AgentConfig(
     name="legal_reviewer",
     model="haiku",
     tools=[],
-    timeout_seconds=90,
+    timeout_seconds=300,
     system_prompt="""You are a legal analyst. Identify potential legal issues, regulatory concerns, and compliance requirements."""
 )
 
