@@ -30,10 +30,6 @@ class DueDiligenceState(TypedDict):
     full_report: Optional[str]
     investment_decision: Optional[dict]
 
-    # HUMAN REVIEW
-    human_feedback: Optional[str]
-    approved: Optional[bool]
-
     # METADATA
     current_stage: str
     errors: Annotated[List[str], add]  # also parallel-safe, same reason as above
@@ -57,8 +53,6 @@ def create_initial_state(
         analysis_outputs=[],
         full_report=None,
         investment_decision=None,
-        human_feedback=None,
-        approved=None,
         current_stage="init",
         errors=[],
         retry_count=0,

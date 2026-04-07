@@ -407,32 +407,3 @@ async def output_node(state: DueDiligenceState) -> Dict[str, Any]:
     return {
         "current_stage": status
     }
-
-
-async def human_review_checkpoint(state: DueDiligenceState) -> Dict[str, Any]:
-    """
-    Human review checkpoint before final output.
-    Allows human to review and approve the investment decision.
-    """
-    print("\n" + "=" * 60)
-    print("AWAITING HUMAN REVIEW")
-    print("=" * 60)
-    
-    decision = state.get("investment_decision")
-    if decision:
-        print(f"Recommendation: {decision.get('recommendation', 'N/A').upper()}")
-        print(f"Confidence: {decision.get('confidence', 0) * 100:.0f}%")
-        print(f"Rationale: {decision.get('summary_rationale', 'N/A')}")
-    
-    # If already approved, proceed
-    if state.get("approved"):
-        print("✓ Human approved - proceeding to output")
-        return {"current_stage": "approved"}
-    
-    # Otherwise, wait for human feedback (in production, this would pause for input)
-    print("\n[In production, workflow would pause here for human review]")
-    print("Set 'approved=True' and 'human_feedback' to resume.")
-    
-    return {
-        "current_stage": "awaiting_review"
-    }

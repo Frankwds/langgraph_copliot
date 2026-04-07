@@ -1,5 +1,4 @@
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
 
 from ..state.schema import DueDiligenceState
 from .routing import check_init_success, check_research_completeness
@@ -10,7 +9,6 @@ from .nodes import (
     analysis_node,
     synthesis_node,
     output_node,
-    human_review_checkpoint,
 )
 
 
@@ -33,7 +31,6 @@ def create_due_diligence_graph() -> StateGraph:
     workflow.add_node("validate_research", validate_research_node)
     workflow.add_node("analysis", analysis_node)
     workflow.add_node("synthesis", synthesis_node)
-    workflow.add_node("human_review", human_review_checkpoint)
     workflow.add_node("output", output_node)
 
     # Set the entry point of the workflow
@@ -52,8 +49,7 @@ def create_due_diligence_graph() -> StateGraph:
     )
     workflow.add_edge("validate_research", "analysis")
     workflow.add_edge("analysis", "synthesis")
-    workflow.add_edge("synthesis", "human_review")
-    workflow.add_edge("human_review", "output")
+    workflow.add_edge("synthesis", "output")
     workflow.add_edge("output", END)
 
     return workflow
