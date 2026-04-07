@@ -1,2 +1,2 @@
 langgraph
-claude-agent-sdk
+github-copilot-sdk  # requires Python 3.11+

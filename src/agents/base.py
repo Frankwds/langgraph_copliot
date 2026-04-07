@@ -10,8 +10,9 @@ import time
 import json
 import tempfile
 from typing import List, Optional, Any
-from pathlib import Path
 from pydantic import BaseModel
+from copilot import CopilotClient, SubprocessConfig
+from copilot.session import PermissionHandler
 
 from ..config.settings import get_model_id
 
@@ -37,34 +38,25 @@ async def run_agent(
     start_time = time.time()
     model_id = get_model_id(model)
 
+    # Note: `tools` parameter is accepted for API compatibility but not passed
+    # to the session — the Copilot CLI's built-in tools (shell, etc.) are
+    # available automatically. Research agent system prompts instruct curl usage.
     try:
-        from claude_agent_sdk import (
-            query, ClaudeAgentOptions, AssistantMessage,
-            ResultMessage, TextBlock,
-        )
-
-        # Use a cross-platform temp directory
         temp_dir = tempfile.gettempdir()
-
-        options = ClaudeAgentOptions(
-            model=model_id,
-            allowed_tools=tools if tools else [],
-            permission_mode="bypassPermissions",
-            cwd=temp_dir
-        )
-
         output_text = ""
 
         async def execute():
             nonlocal output_text
-            async for message in query(prompt=prompt, options=options):
-                if isinstance(message, AssistantMessage):
-                    for block in message.content:
-                        if isinstance(block, TextBlock):
-                            output_text += block.text
-                elif isinstance(message, ResultMessage):
-                    if message.result and not output_text:
-                        output_text = message.result
+            async with CopilotClient(SubprocessConfig(cwd=temp_dir)) as client:
+                session_kwargs = dict(
+                    model=model_id,
+                    on_permission_request=PermissionHandler.approve_all,
+                )
+                if system_prompt:
+                    session_kwargs["system_message"] = {"content": system_prompt}
+                async with await client.create_session(**session_kwargs) as session:
+                    reply = await session.send_and_wait(prompt)
+                    output_text = reply.data.content or ""
 
         await asyncio.wait_for(execute(), timeout=timeout_seconds)
 
