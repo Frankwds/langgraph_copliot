@@ -39,26 +39,15 @@ def check_research_completeness(
     research_outputs = state.get("research_outputs", [])
     retry_count = state.get("retry_count", 0)
 
-    if not research_outputs:
-        if retry_count < 2:
-            return "incomplete"
-        return "failed"
+    # Use a set of unique agent names to avoid double-counting accumulated retries.
+    successful_agents = {
+        r["agent"] for r in research_outputs if r.get("success", False)
+    }
 
-    success_count = sum(
-        1 for r in research_outputs
-        if r.get("success", False)
-    )
-    total_count = len(research_outputs)
-
-    if total_count == 0:
-        return "failed"
-
-    success_rate = success_count / total_count
-
-    if success_rate >= 0.5:
+    if len(successful_agents) >= 3:  # majority (3/5) succeeded
         return "complete"
 
-    if retry_count < 2:
+    if not research_outputs or retry_count < 2:
         return "incomplete"
 
-    return "complete"  # Proceed with what we have
+    return "complete"  # proceed with what we have after max retries

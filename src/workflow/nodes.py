@@ -34,49 +34,49 @@ async def research_node(state: DueDiligenceState) -> Dict[str, Any]:
     """
     Run all research agents in parallel.
 
-    This is the main data gathering phase where we collect information
-    about the company, market, competitors, team, and news.
+    On retries, only agents that failed previously are re-run;
+    already-successful results are preserved via the add reducer.
     """
-    print("\n" + "=" * 60)
-    print("STAGE 2: RESEARCH (5 agents in parallel)")
-    print("=" * 60)
-
     startup_name = state["startup_name"]
     startup_description = state["startup_description"]
 
-    agent_names = [
-        "company_profiler",
-        "market_researcher",
-        "competitor_scout",
-        "team_investigator",
-        "news_monitor"
+    # Agents that already succeeded in a previous attempt — skip them.
+    already_succeeded = {
+        r["agent"] for r in state.get("research_outputs", [])
+        if r.get("success", False)
+    }
+
+    all_agents = [
+        ("company_profiler",  run_company_profiler,  (startup_name, startup_description)),
+        ("market_researcher", run_market_researcher, (startup_name, startup_description)),
+        ("competitor_scout",  run_competitor_scout,  (startup_name, startup_description)),
+        ("team_investigator", run_team_investigator, (startup_name,)),
+        ("news_monitor",      run_news_monitor,      (startup_name,)),
     ]
 
-    for name in agent_names:
+    pending = [(name, fn, args) for name, fn, args in all_agents
+               if name not in already_succeeded]
+
+    print("\n" + "=" * 60)
+    print("STAGE 2: RESEARCH (5 agents in parallel)")
+    print("=" * 60)
+    if already_succeeded:
+        print(f"  Already done: {', '.join(sorted(already_succeeded))}")
+    for name, _, _ in pending:
         print(f"  Starting: {name}")
 
     start_time = time.time()
 
-    # Run all research agents in parallel
-    tasks = [
-        run_company_profiler(startup_name, startup_description),
-        run_market_researcher(startup_name, startup_description),
-        run_competitor_scout(startup_name, startup_description),
-        run_team_investigator(startup_name),
-        run_news_monitor(startup_name),
-    ]
-
-    # Gather results - don't fail on individual agent failures
+    tasks = [fn(*args) for _, fn, args in pending]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     research_outputs = []
     errors = []
 
     for i, result in enumerate(results):
-        agent_name = agent_names[i]
+        agent_name = pending[i][0]
 
         if isinstance(result, Exception):
-            # Agent raised an exception
             errors.append(f"{agent_name}: {str(result)}")
             research_outputs.append({
                 "agent": agent_name,
@@ -87,7 +87,6 @@ async def research_node(state: DueDiligenceState) -> Dict[str, Any]:
             print(f"  FAILED: {agent_name} - {str(result)[:50]}")
 
         elif not result.success:
-            # Agent returned but reported failure
             errors.append(f"{agent_name}: {result.error}")
             research_outputs.append({
                 "agent": agent_name,
@@ -98,7 +97,6 @@ async def research_node(state: DueDiligenceState) -> Dict[str, Any]:
             print(f"  FAILED: {agent_name} - {result.error[:50] if result.error else 'Unknown'}")
 
         else:
-            # Success!
             research_outputs.append({
                 "agent": agent_name,
                 "output": result.output,
@@ -109,12 +107,14 @@ async def research_node(state: DueDiligenceState) -> Dict[str, Any]:
             print(f"  DONE: {agent_name} ({result.execution_time_ms/1000:.1f}s)")
 
     elapsed = time.time() - start_time
-    success_count = sum(1 for r in research_outputs if r.get("success"))
-    print(f"\nResearch complete: {success_count}/5 agents in {elapsed:.1f}s")
+    new_success = sum(1 for r in research_outputs if r.get("success"))
+    total_success = len(already_succeeded) + new_success
+    print(f"\nResearch complete: {total_success}/5 agents in {elapsed:.1f}s")
 
     return {
-        "research_outputs": research_outputs,
+        "research_outputs": research_outputs,   # add reducer merges with existing
         "errors": errors,
+        "retry_count": state.get("retry_count", 0) + 1,
         "current_stage": "research_complete"
     }
 
