@@ -54,7 +54,6 @@ def create_due_diligence_graph() -> StateGraph:
 
     return workflow
 
-
 def compile_workflow():
     """
     Create and compile the workflow graph.
