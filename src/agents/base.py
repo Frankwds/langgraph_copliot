@@ -26,6 +26,13 @@ class AgentResult(BaseModel):
     agent_name: str
     execution_time_ms: int
 
+async def list_available_models() -> List[str]:
+    """Return the model IDs available on this Copilot subscription."""
+    async with CopilotClient(SubprocessConfig(cwd=tempfile.gettempdir())) as client:
+        models = await client.list_models()
+        return [m.id for m in models]
+
+
 async def run_agent(
     agent_name: str,
     prompt: str,
